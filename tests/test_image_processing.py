@@ -6,7 +6,7 @@ from micasense.panel import Panel
 
 def test_load_image():
     image_path = os.path.join('storage', '0')
-    image_pattern = os.path.join(image_path, 'IMG_0068_1.tif')
+    image_pattern = os.path.join(image_path, '1.tif')
     image_files = glob.glob(image_pattern)
     assert len(image_files) > 0, f"No image files found matching pattern {image_pattern}"
     image_name = image_files[0]
