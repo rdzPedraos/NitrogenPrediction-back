@@ -1,10 +1,15 @@
-from flask import Flask, request, jsonify
+from flask import Flask
+from config import Config
+from extensions import socketio
+from routes import main_blueprint
 
-app = Flask(__name__);
+app = Flask(__name__)
+app.config.from_object(Config)
 
-@app.route('/up', methods=['GET'])
-def up():
-    return jsonify({"status": "up"})
+socketio.init_app(app)
+
+# Registrar Blueprint
+app.register_blueprint(main_blueprint)
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0")
+    socketio.run(app, host='0.0.0.0', debug=True, allow_unsafe_werkzeug=True)
