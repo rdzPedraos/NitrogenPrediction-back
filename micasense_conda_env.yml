@@ -19,12 +19,16 @@ dependencies:
   - nb_conda
   - requests
   - packaging
+  - joblib               # Añadido joblib aquí
+  - xgboost               # Añadido xgboost aquí
   - pip
   - pytest-xdist
   - flask  # Added Flask
   - pip:
+    - flask-socketio  # Added Flask-SocketIO here
     - pyzbar
     - mapboxgl
     - git+https://github.com/smarnach/pyexiftool.git   # 
     - jenkspy
     - rawpy
+    - Path
