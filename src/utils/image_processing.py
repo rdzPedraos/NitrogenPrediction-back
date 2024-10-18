@@ -7,7 +7,6 @@ import os
 import glob
 import base64
 
-from extensions import socketio
 from utils.session_manager import load_session_data, save_session_data, update_session_status
 from config import Config
 
@@ -64,7 +63,6 @@ def process_images(session_id):
         # Actualizar el estado de la sesión
         session_data['status'] = 'processed'
         save_session_data(session_id, session_data)
-        socketio.emit('processing_complete', {'session_id': session_id}, broadcast=True)
 
     except Exception as e:
         update_session_status(session_id, 'error')
@@ -73,8 +71,3 @@ def process_images(session_id):
 def emit_image(session_id, image_type, image_path):
     with open(image_path, 'rb') as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-    socketio.emit('filter_processed', {
-        'session_id': session_id,
-        'image_type': image_type,
-        'image_data': encoded_string
-    }, broadcast=True)
