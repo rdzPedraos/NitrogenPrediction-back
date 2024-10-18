@@ -1,42 +1,21 @@
-# src/routes/upload_route.py
-from flask import request, jsonify, current_app
-from utils.image_processing import process_images
 import uuid
-import os
+from flask import request, jsonify
+from utils.file_manager import save
 
 from . import main_blueprint
-from utils.session_manager import save_session_data
 
-@main_blueprint.route('/upload', methods=['POST'])
+@main_blueprint.route('/upload-images', methods=['POST'])
 def upload_images():
-    if 'files' not in request.files:
-        return jsonify({'error': 'No files provided'}), 400
+    if "bands" not in request.files or "panels" not in request.files:
+        return jsonify({'message': 'Invalid request'}), 400
 
-    files = request.files.getlist('files')
     session_id = str(uuid.uuid4())
-
-    # Directorio para almacenar archivos de la sesión
-    storage_path = os.path.join(current_app.config['STORAGE_FOLDER'], session_id)
-    os.makedirs(storage_path, exist_ok=True)
+    bands = request.files.getlist('bands')
+    panels = request.files.getlist('panels')
 
     # Guardar archivos subidos
-    for file in files:
-        filename = file.filename
-        filepath = os.path.join(storage_path, filename)
-        file.save(filepath)
-
-    # Almacenar información de la sesión en un archivo
-    session_data = {
-        'session_id': session_id,
-        'status': 'processing',
-        'storage_path': storage_path,
-        'images': {},
-        'im_aligned_path': '',
-        'stats': {}
-    }
-    save_session_data(session_id, session_data)
-
-    # Procesar las imágenes
-    process_images(session_id)
+    for files, key in zip([bands, panels], ['bands', 'panels']):
+        for id in range(len(files)):
+            save(session_id, files[id], f"{key}_{str(id+1)}.tif")
 
     return jsonify({'session_id': session_id}), 200
