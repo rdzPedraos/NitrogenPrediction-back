@@ -1,5 +1,3 @@
-from extensions import logger
-
 import os
 from config import Config
 

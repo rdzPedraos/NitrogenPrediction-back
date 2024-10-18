@@ -1,5 +1,3 @@
-from extensions import logger
-
 import uuid
 from flask import request, jsonify
 from utils.file_manager import saveBandFile, FILE_TYPES

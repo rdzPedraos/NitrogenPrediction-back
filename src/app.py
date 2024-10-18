@@ -9,4 +9,4 @@ app.config.from_object(Config)
 app.register_blueprint(main_blueprint)
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=True, host="0.0.0.0", use_reloader=False)
