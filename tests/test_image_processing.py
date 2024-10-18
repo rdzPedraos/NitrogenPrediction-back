@@ -6,7 +6,7 @@ from micasense.panel import Panel
 
 def test_load_image():
     image_path = os.path.join('storage', '0')
-    image_pattern = os.path.join(image_path, '1.tif')
+    image_pattern = os.path.join(image_path, 'bands_1.tif')
     image_files = glob.glob(image_pattern)
     assert len(image_files) > 0, f"No image files found matching pattern {image_pattern}"
     image_name = image_files[0]
@@ -18,7 +18,7 @@ def test_load_image():
 
 def test_panel_detection():
     image_path = os.path.join('storage', '0')
-    panel_pattern = os.path.join(image_path, 'panel_1.tif')
+    panel_pattern = os.path.join(image_path, 'panels_1.tif')
     panel_files = glob.glob(panel_pattern)
     assert len(panel_files) > 0, f"No panel images found matching pattern {panel_pattern}"
     panel_name = panel_files[0]
