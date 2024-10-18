@@ -49,4 +49,4 @@ COPY . .
 EXPOSE 5000
 
 # Command to run Flask app
-CMD ["conda", "run", "-n", "micasense", "python", "src/app.py"]
+CMD ["python", "src/app.py"]
