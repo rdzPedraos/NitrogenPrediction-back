@@ -9,8 +9,11 @@ RUN apt-get update && apt-get install -y \
     wget \
     perl \
     gdal-bin \
-    libgdal-dev && \
-    rm -rf /var/lib/apt/lists/*
+    libgdal-dev \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install exiftool
 RUN wget https://cpan.metacpan.org/authors/id/E/EX/EXIFTOOL/Image-ExifTool-12.15.tar.gz \
