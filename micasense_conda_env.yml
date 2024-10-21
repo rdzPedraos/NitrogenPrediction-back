@@ -3,14 +3,15 @@ channels:
   - conda-forge
 dependencies:
   - python=3.8
-  - opencv=4.8
-  - numpy
+  - opencv #=4.8
+  - numpy=1.20.0
   - jupyter
   - matplotlib
   - pysolar
   - gdal
-  - scikit-image
-  - exiftool  # Added exiftool here
+  - scikit-image=0.18.3 #ajustado para que acepte el parametro "selem" en equalize() multichannel=True
+  - scikit-learn=1.0.2 # Ajusta la versión de scikit-learn
+  - exiftool # Added exiftool here
   - pytest
   - git
   - git-lfs
@@ -19,16 +20,16 @@ dependencies:
   - nb_conda
   - requests
   - packaging
-  - joblib               # Añadido joblib aquí
-  - xgboost               # Añadido xgboost aquí
+  - joblib # Añadido joblib aquí
+  - xgboost # Añadido xgboost aquí
   - pip
   - pytest-xdist
-  - flask  # Added Flask
+  - flask # Added Flask
   - pip:
-    - flask-socketio  # Added Flask-SocketIO here
-    - pyzbar
-    - mapboxgl
-    - git+https://github.com/smarnach/pyexiftool.git   # 
-    - jenkspy
-    - rawpy
-    - Path
+      - flask-socketio # Added Flask-SocketIO here
+      - pyzbar
+      - mapboxgl
+      - git+https://github.com/smarnach/pyexiftool.git #
+      - jenkspy
+      - rawpy
+      - Path
