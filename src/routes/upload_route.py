@@ -1,6 +1,6 @@
 import uuid
 from flask import request, jsonify
-from utils.file_manager import saveBandFile, FILE_TYPES
+from utils.FileManager import saveBandFile, FILE_TYPES
 
 from . import main_blueprint
 
@@ -8,8 +8,9 @@ from . import main_blueprint
 def upload_images():
     files = request.files
 
-    if(FILE_TYPES['BANDS'] not in files or FILE_TYPES['PANELS'] not in files):
-        return jsonify({'message': 'Invalid files'}), 400
+    for type in FILE_TYPES.values():
+        if type not in files:
+            return jsonify({'message': 'Invalid files'}), 400
 
     session_id = str(uuid.uuid4())
 
