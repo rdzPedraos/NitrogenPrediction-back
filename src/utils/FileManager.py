@@ -54,6 +54,17 @@ def saveDataInFile(session_id, data, filename, folder=None):
 
 
 def getDataFromFile(session_id, filename, folder=None):
+    file_path = getFilePath(session_id, filename, folder)
+
+    if not file_path:
+        return None
+
+    with open(str(file_path), 'rb') as f:
+        data = f.read()
+    
+    return data
+
+def getFilePath(session_id, filename, folder=None):
     storage_path = STORAGE_FOLDER / session_id
     if folder: storage_path /= folder
 
@@ -61,7 +72,4 @@ def getDataFromFile(session_id, filename, folder=None):
     if not file_path.exists():
         return None
 
-    with open(str(file_path), 'rb') as f:
-        data = f.read()
-    
-    return data
+    return file_path
