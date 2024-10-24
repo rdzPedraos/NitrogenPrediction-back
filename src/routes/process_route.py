@@ -23,9 +23,6 @@ def process(session_id):
     # Calcular los índices de vegetación
     generator.compute_indices()
 
-    # Aplicar máscara a los índices
-    generator.mask_indices()
-
     # Generar y guardar las salidas de los índices
     generator.generate_and_save_index_outputs()
     
