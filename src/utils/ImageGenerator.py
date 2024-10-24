@@ -12,6 +12,8 @@ from utils.FileManager import saveDataInFile, getDataFromFile
 #from osgeo import gdal
 
 class ImageGenerator:
+    figsize = (16, 13)
+
     FILTERS_KEY = {
         "ndvi": "Normalized Difference Vegetation Index",
         "ndre": "Normalized Difference Red Edge",
@@ -39,10 +41,6 @@ class ImageGenerator:
     def __init__(self, processor: ImageProcessor, session_id: str):
         self.processor = processor
         self.session_id = session_id
-
-        self.figsize = (16, 13)
-        self.roi = None
-        self.roi_indices = {}
 
 
     def generate_rgb(self):
