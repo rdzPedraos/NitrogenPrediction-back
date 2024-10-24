@@ -1,6 +1,5 @@
 from io import BytesIO
 import cv2
-import joblib
 import pickle
 import imageio
 import numpy as np
@@ -279,5 +278,5 @@ class ImageGenerator:
             raise FileNotFoundError(f"No se encontraron índices para la sesión {self.session_id}")
 
         # Deserializar los índices
-        self.indices = joblib.loads(indices_data)
+        self.indices = pickle.loads(indices_data)
         print(f"Índices cargados para la sesión {self.session_id}")
