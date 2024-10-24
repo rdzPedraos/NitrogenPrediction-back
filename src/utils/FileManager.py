@@ -11,40 +11,57 @@ FILE_TYPES = {
 }
 
 
+def listFiles(session_id: str, folder: str=None):
+    storage_path = STORAGE_FOLDER / session_id
+    if folder: storage_path /= folder
+
+    if not storage_path.exists():
+        return []
+    
+    return [item for item in storage_path.iterdir() if item.is_file()]
+
+
 def saveBandFile(file, session_id, type, index):
     if type not in FILE_TYPES.values():
         raise ValueError("Invalid type")
     
-    storage_path = os.path.join(STORAGE_FOLDER, session_id, "tif")
-    os.makedirs(storage_path, exist_ok=True)
+    storage_path = STORAGE_FOLDER / session_id / "tif"
+    storage_path.mkdir(parents=True, exist_ok=True)
 
-    file_path = os.path.join(storage_path, f"{type}_{index}.tif")
-    file.save(file_path)
+    file_path = storage_path / f"{type}_{index}.tif"
+    file.save(str(file_path))
     
 
 def getBandFiles(session_id: str, type: str = None):
-    storage_path = os.path.join(STORAGE_FOLDER, session_id, "tif")    
-    return [os.path.join(storage_path, file) for file in os.listdir(storage_path) if type is None or file.startswith(type)]
+    files = listFiles(session_id, 'tif')
+
+    if type:
+        files = [file for file in files if file.name.startswith(type)]
+
+    # Convertir los objetos Path a cadenas de texto (rutas absolutas)
+    return [str(file.resolve()) for file in files]
 
 
 def saveDataInFile(session_id, data, filename, folder=None):
-    storage_path = os.path.join(STORAGE_FOLDER, session_id)
-    if(folder): storage_path = os.path.join(storage_path, folder)
+    storage_path = STORAGE_FOLDER / session_id
+    if folder: storage_path /= folder
 
-    os.makedirs(storage_path, exist_ok=True)
+    storage_path.mkdir(parents=True, exist_ok=True)
+    file_path = storage_path / filename
 
-    file_path = os.path.join(storage_path, filename)
-    with open(file_path, 'wb') as file:
+    with open(str(file_path), 'wb') as file:
         file.write(data)
 
 
 def getDataFromFile(session_id, filename, folder=None):
-    storage_path = os.path.join(STORAGE_FOLDER, session_id)
-    if(folder): storage_path = os.path.join(storage_path, folder)
-    file_path = os.path.join(storage_path, filename)
+    storage_path = STORAGE_FOLDER / session_id
+    if folder: storage_path /= folder
 
-    if not os.path.exists(file_path):
+    file_path = storage_path / filename
+    if not file_path.exists():
         return None
-    with open(file_path, 'rb') as f:
+
+    with open(str(file_path), 'rb') as f:
         data = f.read()
+    
     return data
