@@ -60,9 +60,11 @@ class ImageGenerator:
 
         im_display = np.zeros_like(im_al, dtype=np.float32)
 
-        im_min = np.percentile(im_al[:, :, rgb_band_indices].flatten(), 0.5)
-        im_max = np.percentile(im_al[:, :, rgb_band_indices].flatten(), 99.5)
+        im_min = np.percentile(im_al[:, :, rgb_band_indices].flatten(), 0.5)    # modify these percentiles to adjust contrast
+        im_max = np.percentile(im_al[:, :, rgb_band_indices].flatten(), 99.5)   # for many images, 0.5 and 99.5 are good values
 
+        # for rgb true color, we use the same min and max scaling across the 3 bands to
+        # maintain the "white balance" of the calibrated image
         for i in rgb_band_indices:
             im_display[:, :, i] = imageutils.normalize(im_al[:, :, i], im_min, im_max)
 
@@ -70,8 +72,12 @@ class ImageGenerator:
 
         # Unsharp mask
         gaussian_rgb = cv2.GaussianBlur(rgb, (9, 9), 10.0)
+        gaussian_rgb[gaussian_rgb<0] = 0
+        gaussian_rgb[gaussian_rgb>1] = 1
         unsharp_rgb = cv2.addWeighted(rgb, 1.5, gaussian_rgb, -0.5, 0)
-        unsharp_rgb = np.clip(unsharp_rgb, 0, 1)
+        unsharp_rgb[unsharp_rgb<0] = 0
+        unsharp_rgb[unsharp_rgb>1] = 1
+        #unsharp_rgb = np.clip(unsharp_rgb, 0, 1)
 
         # Gamma correction
         gamma = 1.4
@@ -101,42 +107,44 @@ class ImageGenerator:
         ndvi = (nir_band - red_band) / (nir_band + red_band)
         ndre = (nir_band - rededge_band) / (nir_band + rededge_band)
 
-        self.indices = {
+        indices = {
             "ndvi": ndvi,
             "ndre": ndre,
             "gndvi" : (nir_band - green_band) / (nir_band + green_band),
-            "evi2" : 2.5 * (nir_band - red_band) / (nir_band + 2.4 * red_band + 1),
+            "evi2" : 2.5 * (nir_band - red_band) / (nir_band + (2.4 * red_band) + 1),
             "cvi" : (nir_band / green_band) * (red_band / green_band),
             "osavi" : (nir_band - red_band) / (nir_band + red_band + 0.16),
             "sccci" : ndre / ndvi,
-            "savi" : ((nir_band - red_band) / (nir_band + red_band + L)) * (1 + L),
+            "savi" : (nir_band - red_band) / ((nir_band + red_band + L) * (1 + L)),
             "maci" : nir_band / green_band,
-            "vari" : (green_band - red_band) / (green_band + red_band - blue_band),
-            "tcari" : 3 * ((rededge_band - red_band) - 0.2 * (rededge_band - green_band) * (rededge_band / red_band)),
+            "vari" : (green_band * red_band) / (green_band + red_band - blue_band),
+            "tcari" : 3 * ((rededge_band - red_band) - (0.2 * (rededge_band - green_band) * (rededge_band / red_band))),
             "ipvi" : nir_band / (nir_band + red_band),
-            "arvi" : (nir_band - (2 * red_band) + blue_band / (nir_band + (2 * red_band) + blue_band)),
+            "arvi" : (nir_band - (2 * red_band) + blue_band) / (nir_band + (2 * red_band) + blue_band),
             "gci" : (nir_band / green_band) - 1,
-            "reci" : (nir_band / rededge_band) - 1,
-            "mcari" : ((rededge_band - red_band) - 0.2 * (rededge_band - green_band)) * (rededge_band / red_band),
+            "reci" : (nir_band / rededge_band) - 1, ##
+            "mcari" : (rededge_band - red_band - (0.2 * (rededge_band - green_band))) * (rededge_band / red_band),
         }
 
-        return self.indices
-
-
-    def mask_indices(self, min_ndvi=0.8):
         print("Aplicando una máscara a los índices para filtrar suelos y sombras.")
-        indices = self.compute_indices()
 
-        ndvi = indices['ndvi']
-        if self.processor.CONFIG["image_type"] == self.processor.REFLECTANCE_TYPE:
-            ndvi_mask = np.ma.masked_where(ndvi < min_ndvi, ndvi)
-        else:
-            lower_pct_radiance = np.percentile(ndvi, 10.0)
-            ndvi_mask = np.ma.masked_where(ndvi < lower_pct_radiance, ndvi)
+        image_type = processor.CONFIG["image_type"]
+        if image_type == processor.REFLECTANCE_TYPE:
+            indices["ndvi"] = np.ma.masked_where(nir_band < 0.3, indices["ndvi"])
+        elif image_type == processor.RADIANCE_TYPE:
+            lower_pct_radiance = np.percentile(nir_band, 10.0)
+            indices["ndvi"] = np.ma.masked_where(nir_band < lower_pct_radiance, indices["ndvi"])
 
+        min_display_ndvi = 0.8 #  np.percentile(ndvi.flatten(),  5.0) further mask soil by removing low-ndvi values
+        max_display_ndvi = np.percentile(ndvi.flatten(), 99.5)  # for many images, 0.5 and 99.5 are good values
+
+        ndvi_masked_bigger = indices["ndvi"] < min_display_ndvi 
         for key, value in indices.items():
-            self.indices[key] = np.ma.masked_where(ndvi_mask.mask, value)
+            indices[key] = np.ma.masked_where(ndvi_masked_bigger, value)
 
+        self.indices = indices
+        return self.indices  
+    
 
     def save_rgb_image(self):
         print("Guardando la imagen RGB")
@@ -161,8 +169,7 @@ class ImageGenerator:
             print(f"Procesando el índice: {index_type.upper()}")
 
             # Asegurarse de que hay datos válidos
-            index_flat = index_data.compressed()
-            if index_flat.size == 0:
+            if index_data.compressed().size == 0:
                 print(f"No hay datos válidos para el índice {index_type}. Se omite.")
                 continue
 
@@ -170,24 +177,24 @@ class ImageGenerator:
             self._generate_and_save_index_image(index_type, index_data)
 
             # Generar y guardar el histograma del índice
-            self._generate_and_save_index_histogram(index_type, index_flat)
+            self._generate_and_save_index_histogram(index_type, index_data)
 
 
-    def _generate_and_save_index_histogram(self, index_name, index_flat):
+    def _generate_and_save_index_histogram(self, index_type, index_data):
         # Calcular el mínimo y máximo para el rango del histograma
-        index_hist_min = index_flat.min()
-        index_hist_max = index_flat.max()
+        index_hist_min = np.min(index_data) #index_flat.min()
+        index_hist_max = np.max(index_data) #index_flat.max()
 
         # Crear la figura y el eje
         fig, axis = plt.subplots(1, 1, figsize=(10, 4))
 
         # Generar el histograma
-        axis.hist(index_flat, bins=512, range=(index_hist_min, index_hist_max), color='blue', alpha=0.7)
+        axis.hist(index_data.ravel(), bins=512, range=(index_hist_min, index_hist_max)) # color='blue', alpha=0.7
 
         # Establecer el título y las etiquetas
-        axis.set_title(f"{index_name.upper()} Histogram")
-        axis.set_xlabel(f"Values for {index_name.upper()}")
-        axis.set_ylabel("Frecuency")
+        axis.set_title(f"{index_type} Histogram")
+        #axis.set_xlabel(f"Values for {index_type.upper()}")
+        #axis.set_ylabel("Frecuency")
 
         # Agregar cuadrícula para mejor visualización
         axis.grid(True)
@@ -199,17 +206,24 @@ class ImageGenerator:
         histogram_image_bytes = buf.read()
 
         # Utilizar el FileManager para guardar la imagen
-        filename = f'{index_name}.png'
+        filename = f'{index_type}.png'
         saveDataInFile(self.session_id, histogram_image_bytes, filename, folder="histograms")
         plt.close(fig)  # Cerrar la figura para liberar memoria
 
-        print(f"-- Histograma del índice {index_name} guardado como {filename}")
+        print(f"-- Histograma del índice histograms/{index_type} guardado como {filename}")
     
 
-    def _generate_and_save_index_image(self, index_name, index_data):
+    def _generate_and_save_index_image(self, index_type, index_data):
         # Calcular percentiles para normalizar el índice
-        min_display = np.percentile(index_data.compressed(), 5)
-        max_display = np.percentile(index_data.compressed(), 95)
+        if index_type == "ndvi":
+            min_display = 0.8
+            max_display = np.percentile(index_data.flatten(), 99.5)
+        elif index_type == "gndvi":
+            min_display = np.percentile(index_data, 60)
+            max_display = np.percentile(index_data, 99.5)
+        else :
+            min_display = np.percentile(index_data, 5)
+            max_display = np.percentile(index_data, 99.5)
 
         # Generar la figura y el eje utilizando plot_overlay_withcolorbar
         fig, ax = plotutils.plot_overlay_withcolorbar(
@@ -240,11 +254,11 @@ class ImageGenerator:
         index_image_bytes = buf.read()
 
         # Utilizar el FileManager para guardar la imagen
-        filename = f'{index_name}.png'
+        filename = f'{index_type}.png'
         saveDataInFile(self.session_id, index_image_bytes, filename, folder="images")
         plt.close(fig)  # Cerrar la figura para liberar memoria
 
-        print(f"-- Imagen del índice {index_name} guardada como {filename}")
+        print(f"-- Imagen del índice images/{index_type} guardada como {filename}")
 
     
     def save_indices(self):
