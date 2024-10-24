@@ -1,24 +1,30 @@
 from flask import request, jsonify
-
+from utils.ImageGenerator import ImageGenerator
+from utils.ImagePredictor import ImagePredictor
 from . import main_blueprint
-from utils.prediction import predict_nitrogen
-from utils.session_manager import load_session_data
 
-@main_blueprint.route('/predict', methods=['POST'])
-def predict():
-    data = request.get_json()
-    session_id = data.get('session_id')
-    roi = data.get('roi')
 
-    if not session_id or not roi:
-        return jsonify({'error': 'Session ID or ROI not provided'}), 400
+requierd_roi = ['x1', 'y1', 'x2', 'y2']
+required_iot = ['soil_humedity', 'soil_temperature', "pH", "avg_spad"]
 
-    session_data = load_session_data(session_id)
-    if not session_data or session_data['status'] != 'processed':
-        return jsonify({'error': 'Session not processed or invalid'}), 400
+@main_blueprint.route('/<session_id>/predict', methods=['POST'])
+def predict(session_id):
+    roi_coordinates = request.json.get('roi_coordinates') 
+    data_iot = request.json.get('data_iot')
 
-    result = predict_nitrogen(session_data, roi)
-    if 'error' in result:
-        return jsonify({'error': result['error']}), 500
+    if not data_iot or not all(key in data_iot for key in required_iot):
+        return jsonify({'error': 'Missing keys in data_iot'}), 400
+    
+    if not roi_coordinates or not all(key in roi_coordinates for key in requierd_roi):
+        return jsonify({'error': 'Missing keys in roi_coordinates'}), 400
+    
+    # Crear una instancia de ImageGenerator y cargar los índices
+    generator = ImageGenerator(None, session_id)  # No necesitamos el processor en este caso
+    generator.load_indices()
 
-    return jsonify(result), 200
+    predictor = ImagePredictor(generator)
+    predictor.set_roi(roi_coordinates)
+    predictor.compute_statistics()
+    prediction = predictor.predict(data_iot)
+
+    return jsonify({'nitrogen_prediction': str(prediction)}), 200
