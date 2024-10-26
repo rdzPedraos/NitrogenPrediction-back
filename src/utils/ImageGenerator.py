@@ -33,6 +33,7 @@ class ImageGenerator:
     }
 
     indices = None
+    ndvi_without_mask = None
 
     # Data de imagen RGB corregida
     gamma_corr_rgb = None
@@ -134,10 +135,9 @@ class ImageGenerator:
             lower_pct_radiance = np.percentile(nir_band, 10.0)
             indices["ndvi"] = np.ma.masked_where(nir_band < lower_pct_radiance, indices["ndvi"])
 
-        min_display_ndvi = 0.8 #  np.percentile(ndvi.flatten(),  5.0) further mask soil by removing low-ndvi values
-        max_display_ndvi = np.percentile(ndvi.flatten(), 99.5)  # for many images, 0.5 and 99.5 are good values
+        ndvi_masked_bigger = indices["ndvi"] < 0.8  #  np.percentile(ndvi.flatten(),  5.0) further mask soil by removing low-ndvi values
+        self.ndvi_without_mask = indices["ndvi"].copy()
 
-        ndvi_masked_bigger = indices["ndvi"] < min_display_ndvi 
         for key, value in indices.items():
             indices[key] = np.ma.masked_where(ndvi_masked_bigger, value)
 
@@ -181,8 +181,13 @@ class ImageGenerator:
 
     def _generate_and_save_index_histogram(self, index_type, index_data):
         # Calcular el mínimo y máximo para el rango del histograma
-        index_hist_min = np.min(index_data) #index_flat.min()
-        index_hist_max = np.max(index_data) #index_flat.max()
+
+        if index_type == "ndvi":
+            index_hist_min = self.ndvi_without_mask.min()
+            index_hist_max = self.ndvi_without_mask.max()
+        else: 
+            index_hist_min = np.min(index_data) #index_flat.min()
+            index_hist_max = np.max(index_data) #index_flat.max()
 
         # Crear la figura y el eje
         fig, axis = plt.subplots(1, 1, figsize=(10, 4))
@@ -191,12 +196,12 @@ class ImageGenerator:
         axis.hist(index_data.ravel(), bins=512, range=(index_hist_min, index_hist_max)) # color='blue', alpha=0.7
 
         # Establecer el título y las etiquetas
-        axis.set_title(f"{index_type} Histogram")
+        if index_type == "ndvi":
+            axis.set_title("NDVI Histogram")
+        else:
+            axis.set_title(f"{index_type.upper()} Histogram (filtered to only plants)")
         #axis.set_xlabel(f"Values for {index_type.upper()}")
         #axis.set_ylabel("Frecuency")
-
-        # Agregar cuadrícula para mejor visualización
-        axis.grid(True)
 
         # Guardar la figura en un buffer
         buf = BytesIO()
