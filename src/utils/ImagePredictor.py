@@ -19,15 +19,15 @@ class ImagePredictor:
     def set_roi(self, roi_coordinates):
         """
         Establece la ROI utilizando las coordenadas proporcionadas.
-        roi_coordinates: lista o tupla {x1, y1, x2, y2}
+        roi_coordinates: lista o tupla {x, y, width, height}
         """
 
         print("Extrayendo ROI de los índices.")
 
-        x1 = int(roi_coordinates['x1'])
-        y1 = int(roi_coordinates['y1'])
-        x2 = int(roi_coordinates['x2'])
-        y2 = int(roi_coordinates['y2'])
+        x1 = int(roi_coordinates['x'])
+        y1 = int(roi_coordinates['y'])
+        x2 = x1 + int(roi_coordinates['width'])
+        y2 = y1 + int(roi_coordinates['height'])
 
         self.roi_indices = {}
         for index_name, index_data in self.image_processor.indices.items():

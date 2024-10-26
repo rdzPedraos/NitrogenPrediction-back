@@ -4,7 +4,7 @@ from utils.ImagePredictor import ImagePredictor
 from . import main_blueprint
 
 
-requierd_roi = ['x1', 'y1', 'x2', 'y2']
+requierd_roi = ['x', 'y', 'width', 'height']
 required_iot = ['soil_humedity', 'soil_temperature', "pH", "avg_spad"]
 
 @main_blueprint.route('/<session_id>/predict', methods=['POST'])
@@ -27,4 +27,4 @@ def predict(session_id):
     predictor.compute_statistics()
     prediction = predictor.predict(data_iot)
 
-    return jsonify({'nitrogen_prediction': str(prediction)}), 200
+    return jsonify(str(prediction)), 200
