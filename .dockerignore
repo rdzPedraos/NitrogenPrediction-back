@@ -1,2 +1,3 @@
-storage/*
 .pytest_cache
+/storage/*
+/doc

@@ -1,0 +1,16 @@
+version: "3.8"
+name: nitrogen-prediction
+services:
+  back:
+    image: rdzpedraos/nitrogen-prediction-back:latest
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  front:
+    image: rdzpedraos/nitrogen-prediction-front:latest
+    ports:
+      - "3000:3000"
