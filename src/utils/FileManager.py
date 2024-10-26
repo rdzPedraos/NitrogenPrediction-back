@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from PIL import Image
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 STORAGE_FOLDER = BASE_DIR / 'storage'  # Almacenamiento de archivos
@@ -73,3 +74,14 @@ def getFilePath(session_id, filename, folder=None):
         return None
 
     return file_path
+
+
+def cutImage(image_path, coords):
+    image = Image.open(image_path)
+    x = float(coords['x'])
+    y = float(coords['y'])
+    width = float(coords['width'])
+    height = float(coords['height'])
+
+    image = image.crop((x, y, x + width, y + height))
+    return image
