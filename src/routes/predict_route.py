@@ -1,4 +1,5 @@
 from flask import request, jsonify
+from utils.FileManager import getFilePath, getCoordinatesFromPercentage
 from utils.ImageGenerator import ImageGenerator
 from utils.ImagePredictor import ImagePredictor
 from . import main_blueprint
@@ -17,7 +18,11 @@ def predict(session_id):
     
     if not roi_coordinates or not all(key in roi_coordinates for key in requierd_roi):
         return jsonify({'error': 'Missing keys in roi_coordinates'}), 400
-    
+
+    # Convertir el % del ROI a píxeles
+    defaultImage = getFilePath(session_id, 'rgb.png', 'images')
+    roi_coordinates = getCoordinatesFromPercentage(defaultImage, roi_coordinates)
+
     # Crear una instancia de ImageGenerator y cargar los índices
     generator = ImageGenerator(None, session_id)  # No necesitamos el processor en este caso
     generator.load_indices()

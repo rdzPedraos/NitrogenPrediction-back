@@ -3,7 +3,7 @@ import io
 
 from . import main_blueprint
 from utils.ImageGenerator import ImageGenerator
-from utils.FileManager import getFilePath, cutImage
+from utils.FileManager import getFilePath, getCoordinatesFromPercentage, cutImage
 
 @main_blueprint.route('/<session_id>/storage/<folder>/<band_key>', methods=['GET'])
 def get_processed_image(session_id, folder, band_key):
@@ -21,7 +21,8 @@ def get_processed_image(session_id, folder, band_key):
     if "crop" in coords:
         if not all(key in coords for key in ['x', 'y', 'width', 'height']):
             return abort(400, description='Missing coordinates')
-        
+
+        coords = getCoordinatesFromPercentage(image_path, coords) # Convertir las coordenadas a píxeles
         cropped_img = cutImage(image_path, coords)
 
         # Guardar la imagen recortada en memoria

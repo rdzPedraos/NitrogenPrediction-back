@@ -85,3 +85,17 @@ def cutImage(image_path, coords):
 
     image = image.crop((x, y, x + width, y + height))
     return image
+
+
+def getCoordinatesFromPercentage(image_path, coords_percentage):
+    image = Image.open(image_path)
+    width, height = image.size
+
+    coords = {}
+    for key in ["x", "y", "width", "height"]:
+        value = coords_percentage[key]  
+        if key in ['x', 'width']:
+            coords[key] = int(float(value)  * width/100)
+        else:
+            coords[key] = int(float(value) * height/100)
+    return coords
