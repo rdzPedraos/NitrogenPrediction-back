@@ -6,18 +6,17 @@ from . import main_blueprint
 
 
 requierd_roi = ['x', 'y', 'width', 'height']
-required_iot = ['soil_humedity', 'soil_temperature', "pH", "avg_spad"]
 
-@main_blueprint.route('/<session_id>/predict', methods=['POST'])
-def predict(session_id):
-    roi_coordinates = request.json.get('roi_coordinates') 
-    data_iot = request.json.get('data_iot')
+@main_blueprint.route('/<session_id>/get-statistics', methods=['POST'])
+def statistics(session_id):
+    roi_coordinates = request.json.get('roi') 
+    index = request.json.get('band')
 
-    if not data_iot or not all(key in data_iot for key in required_iot):
-        return jsonify({'error': 'Missing keys in data_iot'}), 400
-    
     if not roi_coordinates or not all(key in roi_coordinates for key in requierd_roi):
         return jsonify({'error': 'Missing keys in roi_coordinates'}), 400
+
+    if index not in ImageGenerator.FILTERS_KEY:
+        return jsonify({'error': 'Index not found'}),
 
     # Convertir el % del ROI a píxeles
     defaultImage = getFilePath(session_id, 'rgb.png', 'images')
@@ -29,7 +28,6 @@ def predict(session_id):
 
     predictor = ImagePredictor(generator)
     predictor.set_roi(roi_coordinates)
-    predictor.compute_all_statistics()
-    prediction = predictor.predict(data_iot)
+    statistics = predictor.compute_statistics(index)
 
-    return jsonify(str(prediction)), 200
+    return jsonify(statistics), 200

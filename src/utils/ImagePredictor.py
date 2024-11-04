@@ -36,26 +36,36 @@ class ImagePredictor:
             self.roi_indices[index_name] = roi
 
 
-    def compute_statistics(self):
+    def compute_all_statistics(self):
         if not self.roi_indices:
             raise ValueError("ROI no extraída. Llama a extract_roi_from_indices primero.")
 
         print("Calculando estadísticas del ROI.")
 
         self.statistics = {}
-        for index_name, roi_data in self.roi_indices.items():
-            # Asegurarse de manejar datos enmascarados correctamente
-            #roi_data_flat = roi_data.compressed() if np.ma.is_masked(roi_data) else roi_data.flatten()
-            
-            stats = {
-                f'max_{index_name}': roi_data.max(),
-                f'min_{index_name}': roi_data.min(),
-                f'avg_{index_name}': roi_data.mean(),
-                f'std_{index_name}': roi_data.std(),
-                f'var_{index_name}': roi_data.var(),
-            }
-            self.statistics.update(stats)
 
+        for index in self.roi_indices:
+            data = self.compute_statistics(index)
+            data = {f"{key}_{index}": value for key, value in data.items()}
+            self.statistics.update(data)            
+
+
+    def compute_statistics(self, index):
+        if not self.roi_indices:
+            raise ValueError("ROI no extraída. Llama a extract_roi_from_indices primero.")
+
+        if index not in self.roi_indices:
+            raise ValueError(f"El índice {index} no está presente en la ROI.")
+
+        roi_data = self.roi_indices[index]
+
+        return {
+            'max': float(roi_data.max()),
+            'min': float(roi_data.min()),
+            'avg': float(roi_data.mean()),
+            'std': float(roi_data.std()),
+            'var': float(roi_data.var()),
+        }
 
     def prepare_data_for_prediction(self, data_iot):
         if not self.statistics:
