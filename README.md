@@ -1,10 +1,10 @@
 # NitrogenAI API Prediction
 
-NitrogenAI Prediction API, es una API REST que permite predecir la cantidad de nitrógeno en cultivos de maíz usando imágenes multiespectrales (nir, red, blue, green, red edge) y datos IoT como humedad, pH, temperatura del suelo y clorofila; ayudando a los agricultores a optimizar su manejo de recursos y reducir los costos como el pago de muestras.
+NitrogenAI Prediction API, es una API REST que permite predecir la cantidad de nitrógeno en cultivos de piña usando imágenes multiespectrales (nir, red, blue, green, red edge) y datos IoT como humedad, pH, temperatura del suelo y clorofila; ayudando a los agricultores a optimizar su manejo de recursos y reducir los costos como el pago de muestras.
 
 ## Créditos
 
-Este proyecto es la mera implementación de todo un [trabajo investigativo doctoral](https://scholar.google.com/citations?view_op=view_citation&hl=es&user=fZyJzlgAAAAJ&citation_for_view=fZyJzlgAAAAJ:W7OEmFMy1HYC) a cargo del doctor Jorge Enrique Chaparro Mesa, que culmina en el entrenamiento de un modelo capaz de predecir la cantidad de nitrogeno en cultivos de maiz usando las variables mencionadas en la introducción, teniendo un margen de error del 13.45%.
+Este proyecto es la mera implementación de todo un [trabajo investigativo doctoral](https://scholar.google.com/citations?view_op=view_citation&hl=es&user=fZyJzlgAAAAJ&citation_for_view=fZyJzlgAAAAJ:W7OEmFMy1HYC) a cargo del doctor Jorge Enrique Chaparro Mesa, que culmina en el entrenamiento de un modelo capaz de predecir la cantidad de nitrógeno en cultivos de piña usando las variables mencionadas en la introducción, teniendo un margen de error del 13.45%.
 
 ✨Por ahora, el sistema está configurado para trabajar con cámaras multiespectrales "micasense" ya que así fue encontrado en el proyecto investigativo
 
